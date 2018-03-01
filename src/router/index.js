@@ -5,6 +5,7 @@ const Login = _ => import('@/pages/login')
 const Register = _ => import('@/pages/register')
 const DashBoard = _ => import('@/pages/Dashboard')
 const AddItem = _ => import('@/pages/AddItem')
+const SetBudget = _ => import('@/pages/SetBudget')
 
 Vue.use(Router)
 
@@ -41,6 +42,18 @@ export default new Router({
       path: '/add-item',
       name: 'AddItem',
       component: AddItem,
+      beforeEnter: (to, from, next) => {
+        if (localStorage.getItem('budget')) {
+          next()
+        } else {
+          next('/')
+        }
+      }
+    },
+    {
+      path: '/set-budget',
+      name: 'SetBudget',
+      component: SetBudget,
       beforeEnter: (to, from, next) => {
         if (localStorage.getItem('budget')) {
           next()

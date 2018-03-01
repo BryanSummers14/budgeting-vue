@@ -6,8 +6,8 @@ Vue.use(Vuex)
 const store = new Vuex.Store({
   state: {
     loggedIn: !!localStorage.getItem('budget'),
-    authToken: localStorage.getItem('budget'),
-    userName: ''
+    authToken: localStorage.getItem('budget') ? JSON.parse(localStorage.getItem('budget')).token : null,
+    userName: localStorage.getItem('budget') ? JSON.parse(localStorage.getItem('budget')).user.name : ''
   },
   getters: {
     authState: state => {
@@ -31,9 +31,11 @@ const store = new Vuex.Store({
   },
   actions: {
     login ({commit}, payload) {
+      localStorage.setItem('budget', JSON.stringify(payload))
       commit('login', payload)
     },
     logout ({commit}) {
+      localStorage.removeItem('budget')
       commit('logout')
     }
   }

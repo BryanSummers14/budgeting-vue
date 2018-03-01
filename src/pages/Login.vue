@@ -60,7 +60,7 @@ export default {
           password: this.password,
           stayLoggedIn: this.checkbox
         }).then(_res => {
-          localStorage.setItem('budget', _res.data.token)
+          this.clear()
           this.$store.dispatch('login', _res.data)
           this.$router.push({ path: '/dashboard' })
         }).catch(error => console.error(error))

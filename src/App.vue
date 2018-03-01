@@ -76,12 +76,17 @@ export default {
           icon: 'bubble_chart',
           title: 'Add New Item',
           route: '/add-item'
+        },
+        {
+          icon: 'bubble_chart',
+          title: 'Set Monthly Budget',
+          route: '/set-budget'
         }
       ],
       miniVariant: false,
       right: true,
       rightDrawer: false,
-      title: 'Vuetify.js',
+      title: 'Expense Tracker',
       name: 'App'
     }
   },

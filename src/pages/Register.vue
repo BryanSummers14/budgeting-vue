@@ -71,7 +71,6 @@ export default {
             password: this.password
           }).then(_res => {
               this.clear()
-              localStorage.setItem('budget', _res.data.token)
               this.$store.dispatch('login', _res.data)
               this.$router.push({ path: '/dashboard' })
           }).catch(error => console.error(error))
