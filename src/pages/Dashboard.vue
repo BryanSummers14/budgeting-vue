@@ -43,7 +43,7 @@
           <h2>Monthly Summary</h2>
         </v-flex>
         <v-flex xs12 sm8>
-          <h2>Overall Spending</h2>
+          <h2>Yearly Spending</h2>
           <my-bar-chart></my-bar-chart>
         </v-flex>
       </v-layout>
@@ -54,8 +54,21 @@
 import MyBarChart from '@/components/BarChart'
 
 export default {
+  data () {
+    return {
+      monthlyTotal: 0,
+      expenses: []
+    }
+  },
   components: {
     MyBarChart
+  },
+  created () {
+    this.$http.get('http://localhost:3000/api/monthly-total', { headers: { 'Authorization': this.$store.state.authToken } })
+      .then(_res => {
+        this.expenses = _res.body.expenses
+        this.monthlyTotal = _res.body.total
+      })
   }
 }
 </script>

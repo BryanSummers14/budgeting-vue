@@ -90,7 +90,10 @@ export default {
     submit () {
       // TODO: validate inputs
       const expenseItem = { recurring: this.recurringAmount, necessary: this.necessaryAmount, recreational: this.recreationalAmount }
-      console.dir(expenseItem)
+      this.$http.post('http://localhost:3000/api/set-monthly-budget', expenseItem, { headers: { 'Authorization': this.$store.state.authToken } })
+        .then(_res => {
+          console.log(_res)
+        })
     },
     clear () {
       this.$refs.form.reset()

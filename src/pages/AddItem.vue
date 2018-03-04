@@ -72,7 +72,8 @@ export default {
     submit () {
       // TODO: validate inputs
       const expenseItem = Object.assign({}, { type: this.type }, { description: this.description }, { amount: this.amount })
-      console.dir(expenseItem)
+      this.$http.post('http://localhost:3000/api/line-item', expenseItem, { headers: { 'Authorization': this.$store.state.authToken } })
+        .then(_res => console.log(_res))
     },
     clear () {
       this.$refs.form.reset()
