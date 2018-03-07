@@ -1,7 +1,10 @@
 <template>
 <v-container fluid>
+  <v-alert type="error" transition="scale-transition" :value="alreadySet">
+      Budget for this month has already been set
+    </v-alert>
       <v-layout justify-center align-center>
-        <v-flex xs12 sm8 md6>
+        <v-flex v-if="!alreadySet" xs12 sm8 md6>
           <h1>Set Budget for the month</h1>
           <v-stepper v-model="e1">
     <v-stepper-header>
@@ -83,14 +86,23 @@ export default {
         v => !!v || 'Amount is required',
         v => /^\d+(?:\.\d{0,2})$/.test(v) || 'Must be a valid dollar amount'
       ],
-      valid: false
+      valid: false,
+      alreadySet: false
     }
+  },
+  created () {
+    this.$http.get('http://localhost:3000/api/budget/get-monthly-budget', { headers: { 'Authorization': this.$store.state.authToken } })
+      .then(_res => {
+        if (_res.status === 200 && _res.body.monthlyBudget) {
+          this.alreadySet = true
+        }
+      })
   },
   methods: {
     submit () {
       // TODO: validate inputs
       const expenseItem = { recurring: this.recurringAmount, necessary: this.necessaryAmount, recreational: this.recreationalAmount }
-      this.$http.post('http://localhost:3000/api/set-monthly-budget', expenseItem, { headers: { 'Authorization': this.$store.state.authToken } })
+      this.$http.post('http://localhost:3000/api/budget/set-monthly-budget', expenseItem, { headers: { 'Authorization': this.$store.state.authToken } })
         .then(_res => {
           console.log(_res)
         })
@@ -102,7 +114,6 @@ export default {
       this.$router.push({ path: '/dashboard' })
     }
   }
-
 }
 </script>
 

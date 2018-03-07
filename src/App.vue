@@ -1,6 +1,7 @@
 <template>
   <v-app>
     <v-navigation-drawer
+      v-if="authState"
       persistent
       :mini-variant="miniVariant"
       clipped
@@ -29,17 +30,24 @@
       app
       clipped-left
     >
-      <v-toolbar-side-icon @click.stop="drawer = !drawer"></v-toolbar-side-icon>
+      <v-toolbar-side-icon v-if="authState" @click.stop="drawer = !drawer"></v-toolbar-side-icon>
       <v-toolbar-title v-text="title"></v-toolbar-title>
       <v-spacer></v-spacer>
       <v-btn v-if="!authState" flat to="/login">
         <v-icon>person</v-icon>
         Login
       </v-btn>
-      <v-btn v-if="authState" flat>
+      <v-menu v-if="authState" open-on-hover bottom offset-y>
+      <v-btn slot="activator" flat>
         <v-icon>person</v-icon>
           {{ user }}
       </v-btn>
+      <v-list>
+        <v-list-tile @click="logout">
+          <v-list-tile-title>Logout</v-list-tile-title>
+        </v-list-tile>
+      </v-list>
+      </v-menu>
     </v-toolbar>
     <v-content>
       <v-slide-y-transition mode="out-in">
@@ -95,6 +103,17 @@ export default {
       'authState',
       'user'
     ])
+  },
+  methods: {
+    logout () {
+      this.$http.post('http://localhost:3000/api/auth/logout', {}, { headers: { 'Authorization': this.$store.state.authToken } })
+        .then(_res => {
+          if (_res.status === 201) {
+            this.$store.dispatch('logout')
+              .then(_ => { this.$router.push({ path: '/' }) })
+          }
+        })
+    }
   }
 }
 </script>

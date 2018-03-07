@@ -1,5 +1,12 @@
 <template>
 <v-container fluid>
+  <v-alert
+      type="success"
+      :value="itemAdded"
+      transition="scale-transition"
+    >
+      Added item to expenses
+    </v-alert>
       <v-layout justify-center align-center>
         <v-flex xs12 sm8 md6>
           <h1>Add a new expense</h1>
@@ -65,15 +72,22 @@ export default {
         v => !!v || 'Amount is required',
         v => /^\d+(?:\.\d{0,2})$/.test(v) || 'Must be a valid dollar amount'
       ],
-      valid: false
+      valid: false,
+      itemAdded: false
     }
   },
   methods: {
     submit () {
       // TODO: validate inputs
       const expenseItem = Object.assign({}, { type: this.type }, { description: this.description }, { amount: this.amount })
-      this.$http.post('http://localhost:3000/api/line-item', expenseItem, { headers: { 'Authorization': this.$store.state.authToken } })
-        .then(_res => console.log(_res))
+      this.$http.post('http://localhost:3000/api/budget/line-item', expenseItem, { headers: { 'Authorization': this.$store.state.authToken } })
+        .then(_res => {
+          if (_res.status === 201) {
+            this.clear()
+            this.itemAdded = true
+            setTimeout(_ => { this.itemAdded = false }, 5000)
+          }
+        })
     },
     clear () {
       this.$refs.form.reset()
