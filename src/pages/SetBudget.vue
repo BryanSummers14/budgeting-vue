@@ -1,10 +1,13 @@
 <template>
 <v-container fluid>
-  <v-alert type="error" transition="scale-transition" :value="alreadySet">
+  <v-alert type="error" transition="scale-transition" dismissible v-model="alertAlreadySet">
       Budget for this month has already been set
     </v-alert>
+    <v-alert type="success" dismissible v-model="alertSuccesfulSet">
+      Budget set
+    </v-alert>
       <v-layout justify-center align-center>
-        <v-flex v-if="!alreadySet" xs12 sm8 md6>
+        <v-flex v-if="!alreadySet || updating" xs12 sm8 md6>
           <h1>Set Budget for the month</h1>
           <v-stepper v-model="e1">
     <v-stepper-header>
@@ -69,6 +72,20 @@
     </v-stepper-items>
   </v-stepper>
         </v-flex>
+        <v-jumbotron v-if="alreadySet && !updating" color="grey lighten-2">
+    <v-container fill-height>
+      <v-layout align-center>
+        <v-flex>
+          <h3 class="display-3">Monthly Budget</h3>
+          <h4>Recurring: {{ monthlyBudget.recurring }}</h4>
+          <h4>Necessary: {{ monthlyBudget.necessary }}</h4>
+          <h4>Recreational: {{ monthlyBudget.recreational }}</h4>
+          <v-divider class="my-3"></v-divider>
+          <v-btn large color="primary" class="mx-0" @click="toggleUpdating">Update Budget</v-btn>
+        </v-flex>
+      </v-layout>
+    </v-container>
+  </v-jumbotron>
       </v-layout>
   </v-container>
 </template>
@@ -87,7 +104,11 @@ export default {
         v => /^\d+(?:\.\d{0,2})$/.test(v) || 'Must be a valid dollar amount'
       ],
       valid: false,
-      alreadySet: false
+      alreadySet: false,
+      monthlyBudget: null,
+      updating: false,
+      alertAlreadySet: false,
+      alertSuccesfulSet: false
     }
   },
   created () {
@@ -95,6 +116,8 @@ export default {
       .then(_res => {
         if (_res.status === 200 && _res.body.monthlyBudget) {
           this.alreadySet = true
+          this.alertAlreadySet = true
+          this.monthlyBudget = { ..._res.body.monthlyBudget }
         }
       })
   },
@@ -102,16 +125,37 @@ export default {
     submit () {
       // TODO: validate inputs
       const expenseItem = { recurring: this.recurringAmount, necessary: this.necessaryAmount, recreational: this.recreationalAmount }
-      this.$http.post('http://localhost:3000/api/budget/set-monthly-budget', expenseItem, { headers: { 'Authorization': this.$store.state.authToken } })
-        .then(_res => {
-          console.log(_res)
-        })
+      if (!this.updating) {
+        debugger
+        this.$http.post('http://localhost:3000/api/budget/set-monthly-budget', expenseItem, { headers: { 'Authorization': this.$store.state.authToken } })
+          .then(_res => {
+            this.alertSuccesfulSet = true
+          })
+      } else {
+        expenseItem.budgetId = this.monthlyBudget._id
+        this.$http.put('http://localhost:3000/api/budget/set-monthly-budget', expenseItem, { headers: { 'Authorization': this.$store.state.authToken } })
+          .then(_res => {
+            this.monthlyBudget = { ..._res.body.monthlyBudget }
+            this.updating = false
+            this.alertSuccesfulSet = true
+          })
+      }
     },
     clear () {
       this.$refs.form.reset()
     },
     onBudgetCancel () {
-      this.$router.push({ path: '/dashboard' })
+      if (this.updating) {
+        this.updating = false
+      } else {
+        this.$router.push({ path: '/dashboard' })
+      }
+    },
+    toggleUpdating () {
+      this.recurringAmount = this.monthlyBudget.recurring
+      this.recreationalAmount = this.monthlyBudget.recreational
+      this.necessaryAmount = this.monthlyBudget.necessary
+      this.updating = true
     }
   }
 }

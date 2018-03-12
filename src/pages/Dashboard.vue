@@ -2,7 +2,7 @@
 <v-container fluid>
             <v-layout row wrap>
             <v-flex xs12 sm4>
-              <h3>Recurring</h3>
+              <h3>Recurring - budget: ${{ monthlyBudget.recurring }} | spent: ${{ recurringTotal }}</h3>
               <v-card color="blue-grey darken-2" class="white--text">
               <v-card-title primary-title>
                 <div class="headline text-xs-center" style="width: 100%;">{{ recurringPercent }}%</div>
@@ -11,7 +11,7 @@
             </v-card>
             </v-flex>
             <v-flex xs12 sm4>
-              <h3>Necessary</h3>
+              <h3>Necessary - budget: ${{ monthlyBudget.necessary }} | spent: ${{ necessaryTotal }}</h3>
               <v-card color="blue-grey darken-2" class="white--text">
               <v-card-title primary-title>
                 <div class="headline text-xs-center" style="width: 100%">{{ necessaryPercent }}%</div>
@@ -20,7 +20,7 @@
             </v-card>
             </v-flex>
             <v-flex xs12 sm4>
-              <h3>Recreational</h3>
+              <h3>Recreational - budget: ${{ monthlyBudget.recreational }} | spent: ${{ recreationalTotal }}</h3>
               <v-card color="blue-grey darken-2" class="white--text">
               <v-card-title primary-title>
                 <div class="headline text-xs-center" style="width: 100%">{{ recreationalPercent }}%</div>
@@ -47,8 +47,8 @@
           </v-data-table>
         </v-flex>
         <v-flex xs12 sm8>
-          <h2>Yearly Spending</h2>
-          <my-bar-chart></my-bar-chart>
+          <h2>Year to date</h2>
+          <my-bar-chart v-if="monthsTracked.length > 0" :Spending="yearlySpending" :Budget="yearlyBudget" :Months="monthsTracked"></my-bar-chart>
         </v-flex>
       </v-layout>
   </v-container>
@@ -65,7 +65,11 @@ export default {
       necessaryTotal: 0,
       recreationalTotal: 0,
       expenses: [],
-      monthlyBudget: null,
+      monthlyBudget: {
+        recurring: 0,
+        necessary: 0,
+        recreational: 0
+      },
       recurringPercent: 0,
       necessaryPercent: 0,
       recreationalPercent: 0,
@@ -76,7 +80,10 @@ export default {
         { text: 'Type', sortable: true, value: 'type' },
         { text: 'Description', value: 'description' },
         { text: 'Amount', sortable: true, value: 'amount' }
-      ]
+      ],
+      yearlySpending: [0],
+      yearlyBudget: [0],
+      monthsTracked: []
     }
   },
   components: {
@@ -91,6 +98,36 @@ export default {
       } else {
         return 'success'
       }
+    },
+    formatMonths: function (_months) {
+      return _months.map(_month => {
+        switch (+_month) {
+          case 0:
+            return 'Jan'
+          case 1:
+            return 'Feb'
+          case 2:
+            return 'Mar'
+          case 3:
+            return 'Apr'
+          case 4:
+            return 'May'
+          case 5:
+            return 'Jun'
+          case 6:
+            return 'Jul'
+          case 7:
+            return 'Aug'
+          case 8:
+            return 'Sep'
+          case 9:
+            return 'Oct'
+          case 10:
+            return 'Nov'
+          case 11:
+            return 'Dec'
+        }
+      })
     }
   },
   created () {
@@ -117,6 +154,12 @@ export default {
         this.necessaryProgressColor = this.determineProgressColor(this.necessaryPercent)
         this.recreationalProgressColor = this.determineProgressColor(this.recreationalPercent)
         this.monthlyTotal = _res.body.total
+      })
+    this.$http.get('http://localhost:3000/api/budget/get-yearly-totals', { headers: { 'Authorization': this.$store.state.authToken } })
+      .then(_res => {
+        this.yearlySpending = [..._res.body.expenses]
+        this.yearlyBudget = [..._res.body.budget]
+        this.monthsTracked = this.formatMonths(_res.body.months)
       })
   }
 }
