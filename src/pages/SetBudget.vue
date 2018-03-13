@@ -1,5 +1,6 @@
 <template>
 <v-container fluid>
+  <loading v-if="appState === state.Loading"></loading>
   <v-alert type="error" transition="scale-transition" dismissible v-model="alertAlreadySet">
       Budget for this month has already been set
     </v-alert>
@@ -7,7 +8,7 @@
       Budget set
     </v-alert>
       <v-layout justify-center align-center>
-        <v-flex v-if="!alreadySet || updating" xs12 sm8 md6>
+        <v-flex v-if="appState === state.Loaded && !alreadySet || updating" xs12 sm8 md6>
           <h1>Set Budget for the month</h1>
           <v-stepper v-model="e1">
     <v-stepper-header>
@@ -92,16 +93,20 @@
 
 
 <script>
+import Loading from '@/components/Loading'
+
 export default {
   data () {
     return {
+      state: {Loading: 0, Loaded: 1},
+      appState: 0,
       e1: 0,
       recurringAmount: 0,
       necessaryAmount: 0,
       recreationalAmount: 0,
       amountRules: [
         v => !!v || 'Amount is required',
-        v => /^\d+(?:\.\d{0,2})$/.test(v) || 'Must be a valid dollar amount'
+        v => /^\d+$/.test(v) || 'Must be a valid dollar amount'
       ],
       valid: false,
       alreadySet: false,
@@ -111,6 +116,9 @@ export default {
       alertSuccesfulSet: false
     }
   },
+  components: {
+    Loading
+  },
   created () {
     this.$http.get('http://localhost:3000/api/budget/get-monthly-budget', { headers: { 'Authorization': this.$store.state.authToken } })
       .then(_res => {
@@ -119,17 +127,18 @@ export default {
           this.alertAlreadySet = true
           this.monthlyBudget = { ..._res.body.monthlyBudget }
         }
+        this.appState = this.state.Loaded
       })
   },
   methods: {
     submit () {
-      // TODO: validate inputs
+      this.appState = this.state.Loading
       const expenseItem = { recurring: this.recurringAmount, necessary: this.necessaryAmount, recreational: this.recreationalAmount }
       if (!this.updating) {
-        debugger
         this.$http.post('http://localhost:3000/api/budget/set-monthly-budget', expenseItem, { headers: { 'Authorization': this.$store.state.authToken } })
           .then(_res => {
             this.alertSuccesfulSet = true
+            this.appState = this.state.Loaded
           })
       } else {
         expenseItem.budgetId = this.monthlyBudget._id
@@ -138,6 +147,7 @@ export default {
             this.monthlyBudget = { ..._res.body.monthlyBudget }
             this.updating = false
             this.alertSuccesfulSet = true
+            this.appState = this.state.Loaded
           })
       }
     },

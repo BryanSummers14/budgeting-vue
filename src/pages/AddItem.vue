@@ -55,8 +55,8 @@ export default {
   data () {
     return {
       expenseTypes: [
-        'Necessary',
         'Recurring',
+        'Necessary',
         'Recreational'
       ],
       type: '',
@@ -70,7 +70,7 @@ export default {
       amount: 0,
       amountRules: [
         v => !!v || 'Amount is required',
-        v => /^\d+(?:\.\d{0,2})$/.test(v) || 'Must be a valid dollar amount'
+        v => /^\d+$/.test(v) || 'Must be a valid dollar amount'
       ],
       valid: false,
       itemAdded: false
@@ -78,7 +78,6 @@ export default {
   },
   methods: {
     submit () {
-      // TODO: validate inputs
       const expenseItem = Object.assign({}, { type: this.type }, { description: this.description }, { amount: this.amount })
       this.$http.post('http://localhost:3000/api/budget/line-item', expenseItem, { headers: { 'Authorization': this.$store.state.authToken } })
         .then(_res => {

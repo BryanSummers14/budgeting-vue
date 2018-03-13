@@ -4,6 +4,7 @@
             <v-flex xs12 sm4>
               <h3>Recurring - budget: ${{ monthlyBudget.recurring }} | spent: ${{ recurringTotal }}</h3>
               <v-card color="blue-grey darken-2" class="white--text">
+                <loading v-if="appState === state.Loading"></loading>
               <v-card-title primary-title>
                 <div class="headline text-xs-center" style="width: 100%;">{{ recurringPercent }}%</div>
                   <v-progress-linear v-if="monthlyBudget" :value="recurringPercent" height="20" :color="recurringProgressColor">{{ recurringPercent }}</v-progress-linear>
@@ -13,6 +14,7 @@
             <v-flex xs12 sm4>
               <h3>Necessary - budget: ${{ monthlyBudget.necessary }} | spent: ${{ necessaryTotal }}</h3>
               <v-card color="blue-grey darken-2" class="white--text">
+                <loading v-if="appState === state.Loading"></loading>
               <v-card-title primary-title>
                 <div class="headline text-xs-center" style="width: 100%">{{ necessaryPercent }}%</div>
                 <v-progress-linear v-if="monthlyBudget" :value="necessaryPercent" height="20" :color="necessaryProgressColor">{{ necessaryPercent }}</v-progress-linear>
@@ -22,6 +24,7 @@
             <v-flex xs12 sm4>
               <h3>Recreational - budget: ${{ monthlyBudget.recreational }} | spent: ${{ recreationalTotal }}</h3>
               <v-card color="blue-grey darken-2" class="white--text">
+                <loading v-if="appState === state.Loading"></loading>
               <v-card-title primary-title>
                 <div class="headline text-xs-center" style="width: 100%">{{ recreationalPercent }}%</div>
                 <v-progress-linear v-if="monthlyBudget" :value="recreationalPercent" height="20" :color="recreationalProgressColor">{{ recreationalPercent }}</v-progress-linear>
@@ -56,10 +59,13 @@
 
 <script>
 import MyBarChart from '@/components/BarChart'
+import Loading from '@/components/Loading'
 
 export default {
   data () {
     return {
+      state: {Loading: 0, Loaded: 1, Updated: 2},
+      appState: 0,
       monthlyTotal: 0,
       recurringTotal: 0,
       necessaryTotal: 0,
@@ -87,7 +93,8 @@ export default {
     }
   },
   components: {
-    MyBarChart
+    MyBarChart,
+    Loading
   },
   methods: {
     determineProgressColor: function (_percent) {
@@ -154,6 +161,7 @@ export default {
         this.necessaryProgressColor = this.determineProgressColor(this.necessaryPercent)
         this.recreationalProgressColor = this.determineProgressColor(this.recreationalPercent)
         this.monthlyTotal = _res.body.total
+        this.appState = this.state.Loaded
       })
     this.$http.get('http://localhost:3000/api/budget/get-yearly-totals', { headers: { 'Authorization': this.$store.state.authToken } })
       .then(_res => {
